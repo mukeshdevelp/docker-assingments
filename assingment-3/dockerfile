@@ -1,0 +1,32 @@
+# Use the latest Ubuntu image
+FROM ubuntu:latest
+
+# Set the maintainer label
+LABEL maintainer="Mukesh msmukeshkumarsharma95@gmail.com"
+
+# Update local packages
+RUN apt-get update
+
+# Install nodejs and npm packages
+RUN apt-get install -y nodejs npm
+
+# Create a symlink from nodejs to node (if nodejs is installed as nodejs)
+RUN if [ ! -f /usr/bin/node ]; then ln -s /usr/bin/nodejs /usr/bin/node; fi
+# Install the http-server globally using npm
+RUN npm install -g http-server
+
+# Create a directory for the app and add the index.html file
+RUN mkdir -p /usr/apps/hello-docker
+
+# Copy the index.html file from local system into the container
+COPY index.html /usr/apps/hello-docker/index.html
+
+# Set the working directory to /usr/apps/hello-docker
+WORKDIR /usr/apps/hello-docker/
+
+# Expose port 8080 for the container
+EXPOSE 8080
+
+# Run the http-server when the container starts
+CMD ["http-server", "-s", "-p", "8080"]
+
