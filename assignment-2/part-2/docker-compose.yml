@@ -1,0 +1,164 @@
+version: '3.8'
+
+services:
+  # Step 1: MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: ot-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root@123
+      MYSQL_DATABASE: otmicroservices
+      MYSQL_USER: otuser
+      MYSQL_PASSWORD: otpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - ot-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Step 1: Attendance Service (Python)
+  attendance:
+    build:
+      context: .
+      dockerfile: dockerfiles/attendance/Dockerfile
+    container_name: ot-attendance
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: otmicroservices
+      MYSQL_USER: otuser
+      MYSQL_PASSWORD: otpassword
+      SERVER_PORT: 8081
+    ports:
+      - "8081:8081"
+    networks:
+      - ot-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Step 2: Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    container_name: ot-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    networks:
+      - ot-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Step 2: Employee Service (Golang)
+  employee:
+    build:
+      context: .
+      dockerfile: dockerfiles/employee/Dockerfile
+    container_name: ot-employee
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      ELASTICSEARCH_HOST: elasticsearch
+      ELASTICSEARCH_PORT: 9200
+      SERVER_PORT: 8083
+    ports:
+      - "8083:8083"
+    networks:
+      - ot-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Step 3: Salary Service (Java)
+  salary:
+    build:
+      context: .
+      dockerfile: dockerfiles/salary/Dockerfile
+    container_name: ot-salary
+    depends_on:
+      - employee
+      - attendance
+    environment:
+      EMPLOYEE_SERVICE_URL: http://employee:8083
+      ATTENDANCE_SERVICE_URL: http://attendance:8081
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    networks:
+      - ot-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Step 4: Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: ot-nginx
+    depends_on:
+      - salary
+      - employee
+      - attendance
+    ports:
+      - "8000:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - ot-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Step 5: Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: dockerfiles/frontend/Dockerfile
+    container_name: ot-frontend
+    depends_on:
+      - nginx
+    environment:
+      REACT_APP_API_URL: http://nginx:80
+    ports:
+      - "3000:3000"
+    networks:
+      - ot-network
+
+networks:
+  ot-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  es-data:
+
