@@ -1,0 +1,31 @@
+Part1
+- You have make sure your S3Hibernate App is up and running on Docker Container.
+- Make sure one container for MySql is up.
+- Make sure you are able to ping MySql Container from S3H container.
+- Make sure your database connectivity is established.
+repo link: https://github.com/opstree/spring3hibernate.git
+
+
+Part2
+In this Assignment We need to deploy OT-Microservices Application.
+REPO LINK: https://github.com/opstree/OT-Microservices-Training
+Step1:
+    - MySQL
+    - Attendance
+        - Validate
+Step2
+    - ES
+    - Employee
+        - Validate
+Step3:
+    - Salary
+        - Validate
+Step3:
+    Nginx
+        - Proxy
+            - Salary
+            - Employee
+            - Attendance
+Step5:
+    Frontend
+        - Validate
