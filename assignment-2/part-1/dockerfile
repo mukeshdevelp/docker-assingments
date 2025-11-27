@@ -1,0 +1,28 @@
+FROM maven:3.3-jdk-8 AS builder
+
+# Set working directory
+WORKDIR /usr/src/mymaven/
+
+# Clone the repository instead of copying local files
+RUN git clone https://github.com/opstree/spring3hibernate.git .
+
+# Build the application - Skip dependency-check and tests
+RUN mvn clean install -DskipTests -Ddependency-check.skip=true
+RUN mvn package -DskipTests -Ddependency-check.skip=true
+
+FROM tomcat:7-jre7-alpine
+
+RUN rm -rf /usr/local/tomcat/webapps/*
+
+# Copy the WAR file
+COPY --from=builder /usr/src/mymaven/target/Spring3HibernateApp.war /usr/local/tomcat/webapps/ROOT.war
+
+WORKDIR /usr/local/tomcat/webapps/
+
+# Install ping utility for testing connectivity (required for assignment)
+RUN apk add --no-cache iputils
+
+EXPOSE 8080
+
+# Start Tomcat
+CMD ["catalina.sh", "run"]

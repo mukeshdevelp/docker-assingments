@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-container
+    environment:
+      MYSQL_ROOT_PASSWORD: root@123
+      MYSQL_DATABASE: s3hibernate
+      MYSQL_USER: s3user
+      MYSQL_PASSWORD: s3password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  s3hibernate:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: s3hibernate-container_2
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      # Spring Boot properties for database connection
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/s3hibernate
+      SPRING_DATASOURCE_USERNAME: s3user
+      SPRING_DATASOURCE_PASSWORD: s3password
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      # Java system properties (alternative way)
+      JAVA_OPTS: "-Dspring.datasource.url=jdbc:mysql://mysql:3306/s3hibernate -Dspring.datasource.username=s3user -Dspring.datasource.password=s3password"
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    # Add command to ensure Tomcat starts properly
+    command: ["catalina.sh", "run"]
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
