@@ -17,7 +17,7 @@ Docker Compose setup for OT-Microservices with high availability. Code is cloned
 **Step 3:** Buddy runs without cloning (only needs dockerfiles)  
 **Step 4:** High Availability - 2 replicas each for attendance, employee, salary  
 **Bonus:** Run only Attendance and MySQL containers
-Screenshot from 2025-12-22 10-51-20.png
+
 
 
 
