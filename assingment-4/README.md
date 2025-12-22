@@ -18,8 +18,16 @@ Docker Compose setup for OT-Microservices with high availability. Code is cloned
 **Step 4:** High Availability - 2 replicas each for attendance, employee, salary  
 **Bonus:** Run only Attendance and MySQL containers
 
+<img width="1920" height="1080" alt="Screenshot from 2025-12-22 10-51-15" src="https://github.com/user-attachments/assets/2a5bf361-e499-408b-b6f8-fb9da1c19568" />
+
+<img width="1920" height="1080" alt="Screenshot from 2025-12-22 10-51-15" src="https://github.com/user-attachments/assets/e9d5f5af-55df-44c2-af08-8ec8ec2b3089" />
+
+<img width="1920" height="1080" alt="Screenshot from 2025-12-22 10-51-23" src="https://github.com/user-attachments/assets/3eae1c5a-ebbf-45de-a0f1-0b6219141b34" />
+
+<img width="1920" height="1080" alt="Screenshot from 2025-12-22 10-51-25" src="https://github.com/user-attachments/assets/f5e178af-7fe5-498c-9192-2a523a6e5ae1" />
 
 
+<img width="1920" height="1080" alt="Screenshot from 2025-12-22 10-51-27" src="https://github.com/user-attachments/assets/9e120586-2cab-4301-955e-f3d61532fc2b" />
 
 ## How to Complete
 
