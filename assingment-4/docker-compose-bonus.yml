@@ -1,0 +1,61 @@
+# Bonus Assignment: Run only Attendance and MySQL containers
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: ot-mysql-bonus
+    environment:
+      MYSQL_ROOT_PASSWORD: root@123
+      MYSQL_DATABASE: otmicroservices
+      MYSQL_USER: otuser
+      MYSQL_PASSWORD: otpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data-bonus:/var/lib/mysql
+    networks:
+      - ot-network-bonus
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Attendance Service only
+  attendance:
+    build:
+      context: .
+      dockerfile: dockerfiles/attendance/Dockerfile
+    image: ot-attendance:latest
+    container_name: ot-attendance-bonus
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: otmicroservices
+      MYSQL_USER: otuser
+      MYSQL_PASSWORD: otpassword
+      SERVER_PORT: 8081
+      CONFIG_FILE: "/app/config/config.yaml"
+    ports:
+      - "8081:8081"
+    networks:
+      - ot-network-bonus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/attendance/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  ot-network-bonus:
+    driver: bridge
+
+volumes:
+  mysql-data-bonus:
+
